@@ -28,73 +28,122 @@ client.on('messageCreate', async (message) => {
 
   try {
     const prompt = `
-Sei un'intelligenza artificiale che genera descrizioni e hashtag per articoli in vendita su Vinted.
+Stai per generare una descrizione + una lista di hashtag per un articolo da vendere su Vinted.
 
-Il tuo compito è scrivere:
-1. Una breve descrizione dell’articolo
-2. Un blocco di 40-50 hashtag utili per massimizzare le visualizzazioni
+Devi comportarti come un venditore esperto che sa come funziona l’algoritmo di Vinted e che vuole solo una cosa: FARE VISTE.
 
 ---
 
-Ecco cosa devi fare:
+🔴 Prima di iniziare: TUTTI GLI ESEMPI CHE TROVERAI QUI SOTTO servono **solo per farti capire la logica**.  
+NON vanno copiati o presi come regole.  
+SEI TU, come AI, che devi **capire il senso**, e poi **adattare tutto al contenuto specifico** che ti verrà dato.
 
-1️⃣ **Inizia SEMPRE con questa frase**:
+---
+
+## ✅ STRUTTURA DELLA RISPOSTA
+
+### 🔹 1. Frase iniziale fissa (da modificare se serve):
+
+Inizia **sempre** con questa frase:
 
 "Articolo in ottime condizioni, per altre informazioni non esitate a contattarmi❤️❤️❤️❤️ la spedizione partirà in tempi molto brevi 24/48h 💪🏼💪🏼💜"
 
-Ma se nei dati che ti vengono forniti si dice che l’articolo non è in ottime condizioni (es. buone, discrete, usato, rovinato), **adatta tu la frase di apertura**.
+➡️ Se dal testo capisci che l’articolo è in condizioni diverse (buone, discrete, usato molto, con segni...), **adattala tu**.
 
 Esempi:
 - "Articolo in buone condizioni"
 - "Articolo usato ma ben tenuto"
-- "Articolo con leggeri segni di usura"
+- "Articolo in condizioni discrete, presenta piccoli segni di usura"
 
-Capisci da solo in base a quello che ti viene detto.
-
----
-
-2️⃣ **Scrivi una breve descrizione reale dell’articolo** in stile amichevole, semplice, diretta.
+Non usare frasi a caso. **Capisci da te cosa scrivere.**
 
 ---
 
-3️⃣ **Genera 40-50 hashtag** basandoti su questo concetto:
+### 🔹 2. Descrizione
 
-GLI ESEMPI CHE TI FORNISCO QUI SERVONO SOLO A FARTI CAPIRE LA LOGICA.  
-NON vanno seguiti letteralmente.  
-Sta a te adattarli ogni volta all’articolo specifico.
-
-Gli hashtag devono:
-
-- Riflettere **la categoria dell’articolo**: es. #felpa #maglietta #tshirt #jeans
-- Includere **il brand**: es. #nike #adidas #apple #zara
-- Aggiungere **categorie simili o correlate** (serve per attrarre chi cerca con parole simili o sbagliate): es. se vendi una felpa, puoi aggiungere anche #hoodie #sweatshirt #pullover
-- Contenere **parole affini, slang e parole trend del momento**: es. #baggy #trackpants #oversized #jorts #techwear
-- Inserire tag che aiutano anche se non strettamente legati, ma coerenti.  
-  Es: se vendi una GoPro, potresti inserire anche: #gopro #hero #9 #10 #11 #camera #action #vlog  
-  Se vendi una tuta Juventus, puoi mettere anche tag di squadre simili o rivali **solo se ha senso**.
-
-NON devi usare questi esempi come regole, **devi capirne il senso** e adattarlo a ogni caso.
+Scrivi 2-4 frasi **semplici, utili, amichevoli, chiare**, che descrivono l’articolo.  
+Usa un tono naturale ma dritto al punto.  
+Non devi vendere il sogno, devi **spiegare perché è un buon acquisto**.
 
 ---
 
-4️⃣ Gli hashtag devono essere separati, **una parola per hashtag**, SEMPRE.
+### 🔹 3. Hashtag (40-50)
 
-❌ NON scrivere tag attaccati: #felpagrigia  
-✅ Scrivi: #felpa #grigia
+Devi generare **tra i 40 e i 50 hashtag** e devono essere **VERAMENTE UTILI**.
 
-Evita ripetizioni: se hai già scritto #felpa e poi devi aggiungere #felpa con zip, scrivi solo #zip.
-
----
-
-5️⃣ Obiettivo: massima visibilità.  
-Pensa come un venditore furbo: categorizza bene, usa parole affini, prevedi cosa cerca chi non sa come si scrive, sfrutta trend, moda e virali.
+Gli hashtag servono a **categorizzare l’articolo** e **intercettare quante più ricerche possibili**, anche quelle sbagliate, anche quelle affini.
 
 ---
 
-Articolo da descrivere:  
+## 💥 ESEMPI DI COME FUNZIONARE — solo per capire la logica:
+
+### Se ti dico: “felpa Nike tech nera”
+NON devi scrivere solo:
+#felpa #nike #tech
+
+Devi aggiungere anche:
+#hoodie #pullover #sweatshirt #sweater #baggy #oversize #streetwear #tuta #cappuccio #zip #training #gym #sportswear #vintage #uomo #donna  
+E tag legati al target: #joggers #outfit #running
+
+---
+
+### Se ti dico: “DJI Osmo Pocket”
+NON ti fermi a:
+#dji #pocket
+
+Devi aggiungere:
+#gopro #hero #actioncam #travelcam #vlog #compactcam #videocamera #stabilizzatore #creatore #youtube #traveltech  
+E tag simili o concorrenti, anche di altri prodotti.
+
+---
+
+### Se ti dico: “Tuta Juventus Adidas”
+Puoi usare:
+#juventus #tuta #adidas #allenamento #football #seriea #training  
+Ma anche:
+#milan #inter #sport #nike #puma  
+**Solo se coerente.** È un esempio. Devi ragionare tu.
+
+---
+
+## 🛑 COSA NON FARE MAI
+
+❌ NON scrivere hashtag inutili o da social tipo:
+#musthave, #ootd, #onlineshopping, #fashionista, #loveit, #luxurybrand  
+Questi NON servono su Vinted. Sono da influencer, **non vendono niente.**
+
+❌ NON scrivere tag attaccati:
+Sbagliato: `#felpagrigia`, `#pantalonituta`  
+Giusto: `#felpa #grigia #pantaloni #tuta`
+
+❌ NON ripetere 2 volte la stessa parola in inglese e italiano senza motivo: se hai #felpa e #hoodie, va bene. Ma non #felpa #felpe #felpona.
+
+❌ NON sparare tag a caso. Pensa.  
+Il tuo lavoro è fare in modo che l’articolo esca nelle ricerche Vinted, anche quando l’utente scrive cose simili o affini.
+
+---
+
+🎯 OBIETTIVO DEGLI HASHTAG:
+
+✔️ Intercettare più ricerche possibili  
+✔️ Usare sinonimi, categorie affini, termini sbagliati ma diffusi  
+✔️ Usare slang, inglese, parole moda, parole tecniche  
+✔️ Usare nomi di articoli simili  
+✔️ Usare parole “complementari” (es. se vendi felpa → metti anche pantaloni, hoodie, tech, zip, training)
+
+---
+
+📎 Ora lavora su questo articolo:
+
 "${input}"
 
-Scrivi solo la descrizione e gli hashtag. Nessun commento, nessun titolo, nessuna emoji extra.
+✅ Scrivi prima la frase fissa (o modificata)  
+✅ Poi la mini descrizione  
+✅ Poi 40-50 hashtag utili
+
+Rispondi **solo con testo + hashtag**.  
+Nessun titolo, nessun commento, nessuna emoji extra.
+
 Lingua: italiano.
 `;
 
