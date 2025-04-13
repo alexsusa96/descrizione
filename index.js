@@ -69,6 +69,22 @@ Tutti questi esempi ti servono per capire come ragionare e adattarli a ogni caso
 Bene, il totale dei tags voglio che sia di almeno 40-50 tags.
 
 Mi raccomando: ricorda che il nostro scopo è fare più visualizzazioni possibile!
+
+
+ora ti faccio un esempio di descrizione dove spiego il perche dei tag che ho messo, questa descrizione che ti darò dovrai usarla per comprendere meglio il funzionamento di come vogliamo la descrizione prendila come spunto e dovrai riaddattarla alle altre richieste....
+
+andiamo con l' esempio:
+
+voglio una descrizione per la mia felpa adidas 
+
+risultato:
+
+Articolo in ottime condizioni, per altre informazioni non esitate a contattarmi❤️❤️❤️❤️ la spedizione partirà in tempi molto brevi 24/48h 💪🏼💪🏼💜
+
+Tags: #felpa #adidas #pull #sweat #felpa #con #cappuccio #crazy #jacket #maglione #trackjacket #pullover #zip (ho messo questi tag perche sono categorie simili in questo modo se qualcuno cercherà maglione adidas gli uscirà il mio articolo...) #sportiva #sportiva #ultra #baggy #vintage #retro #y2k #cropped #boxy #fit (ho messo questi tag cosi se qualcuno cerca felpa sportiva gli esce il mio articolo, se cerca pull vintage gli esce il mio articolo, se cerca maglione y2k gli esce il mio articolo, le descrizioni devi farle come se fossero un puzzle)  #equipment #juventus #real #madrid #bayern #munich #monaco (ho messo questi tag perche quipment e molto ricercato nel vintage adidas, poi le squadre da calcio perche se uno cerca felpa adidas juventus gli uscira il mio articolo e io in questo modo farò più visualizzazioni) #jorts #trackpants #ensemble #tracksuit #tuta #completo #pantaloni #tshirt #shirt #polo #flared #jeans (concludo con altre categorie in modo da avere più visualizzazini)
+
+
+ogni descrizione che farai dovra essere studiata in questo modo... 
 `;
 
     const completion = await openai.createChatCompletion({
