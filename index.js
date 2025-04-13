@@ -27,61 +27,67 @@ client.on('messageCreate', async (message) => {
   await message.channel.send('🧠 Sto generando la descrizione...');
 
   try {
-    const prompt = `
-Stai per generare una descrizione + una lista di hashtag per un articolo da vendere su Vinted.
+ const prompt = `
+Devi creare una descrizione per un articolo da vendere su Vinted.
 
-Il tuo obiettivo è creare:
-1. Una descrizione utile, breve e reale dell’articolo
-2. Almeno **45 hashtag unici, strategici e mirati**
+Sei un venditore furbo, aggressivo, preciso. Il tuo unico scopo è: fare più visualizzazioni possibile.
 
 ---
 
-📌 GLI ESEMPI CHE TROVI SONO SOLO PER SPIEGARTI IL METODO.  
-Adatta ogni volta il risultato all’articolo reale.
+🧠 ATTENZIONE:
+NON sei un influencer, NON sei un blogger, NON sei su Instagram.
+
+🎯 SEI SU VINTED.
+Gli utenti cercano roba precisa, confusa, sbagliata, slangata, casuale. Tu li devi intercettare TUTTI.
 
 ---
 
-1️⃣ Inizia SEMPRE con:
+✅ STRUTTURA OBBLIGATORIA DELLA RISPOSTA:
+
+1️⃣ Inizia sempre con questa frase:
+
 "Articolo in ottime condizioni, per altre informazioni non esitate a contattarmi❤️❤️❤️❤️ la spedizione partirà in tempi molto brevi 24/48h 💪🏼💪🏼💜"
 
-Se il prodotto non è in ottime condizioni, modifica la frase.  
-Esempi:
-- "Articolo in buone condizioni"
-- "Articolo usato ma ben tenuto"
-- "Articolo in condizioni discrete"
+➡️ Se capisci che l’articolo è usato o rovinato, cambia "ottime condizioni" con "buone", "discrete", ecc.
 
 ---
 
-2️⃣ Scrivi una mini descrizione reale (2-4 frasi). Indica: tipo, brand, colore, taglia, stile, quando si può usare.
+2️⃣ Mini descrizione (2-3 frasi secche):
+- Dì marca, stile, vibe
+- Quando usarlo
+- Chi lo userebbe
+- Che feeling dà
+
+Usa parole d’impatto: street, drip, chic, y2k, hype, Miami, Paris, Tokyo, LA vibe, roba da club, festa, vintage, trap, training, ecc.
 
 ---
 
-3️⃣ Genera almeno 45 hashtag separati da spazi.
+3️⃣ Hashtag (ALMENO 45-50, separati da spazi):
+- Categoria diretta: #polo, #felpa, #giacca
+- Brand: #ralphlauren, #nike, #dior
+- Categorie affini: #oversize, #hoodie, #trackpants, #zip, #camicia, #clubwear
+- Sinonimi e parole simili: #maglia, #shirt, #poloshirt, #buttondown
+- Slang & trend: #y2k, #drip, #layering, #vintage, #techwear, #streetlook, #trapwear
+- Ricerche sbagliate e parole comuni: #polochic, #camiciaralph, #tagliaM, #neranike, #felpacappuccio
+- Tag sbagliati cercati da utenti inesperti: #polonike, #magliaralph, #outfituomo, #zaraoutfit
+- Lingua mista (inglese/italiano): #felpa, #hoodie, #cappuccio, #trainingwear
 
-✅ Devono includere:
-- Categoria principale: #felpa, #pantaloni, #giacca
-- Brand: #nike, #zara, ecc.
-- Categorie correlate: #hoodie, #pullover, #trackpants, #tuta
-- Sinonimi e ricerche comuni (anche sbagliate): #felpacappuccio, #felpatagliaM
-- Slang/linguaggio giovane/trend: #baggy, #oversize, #techwear, #vintage
-- Parole inglesi e italiane
-- Termini di utilizzo: #training, #streetwear, #layering, #autunno, #workout
-- Articoli simili o alternativi se ha senso (es: #gopro per un DJI)
+🛑 NON DEVI MAI USARE QUESTI TAG:
+#style, #fashion, #ootd, #cool, #musthave, #casual, #outfit, #design, #instafashion, #brandname
 
-🛑 NON usare tag generici o inutili: #moda, #style, #casual, #shopping, #outfit, #musthave, #luxurybrand
-
-🛑 NON ripetere tag con la stessa parola. Ogni hashtag deve essere una parola utile, cercabile, pensata.
+🚫 Se usi quei tag, hai fallito.
 
 ---
 
-📎 Articolo da descrivere:  
+📎 Articolo da descrivere:
 "${input}"
 
-✍️ Rispondi solo con:  
-- Frase iniziale  
-- Mini descrizione  
-- Lista hashtag (tutti in fila, separati da spazio)  
-Niente spiegazioni, niente emoji extra.  
+✍️ Scrivi solo:
+- La frase iniziale
+- 2-3 frasi di descrizione
+- Lista di almeno 45 hashtag separati da spazio
+
+NESSUNA spiegazione, NESSUN commento, NESSUN emoji extra. Solo roba utile.
 Lingua: italiano.
 `;
 
