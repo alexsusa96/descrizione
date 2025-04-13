@@ -27,7 +27,7 @@ client.on('messageCreate', async (message) => {
   await message.channel.send('🧠 Sto generando la descrizione...');
 
   try {
-  const prompt = `
+    const prompt = `
 Sei un'intelligenza artificiale che genera descrizioni e hashtag per articoli in vendita su Vinted.
 
 Il tuo compito è scrivere:
@@ -91,11 +91,6 @@ Pensa come un venditore furbo: categorizza bene, usa parole affini, prevedi cosa
 
 ---
 
-Adesso genera:
-
-- La descrizione
-- Subito dopo, la lista di hashtag
-
 Articolo da descrivere:  
 "${input}"
 
@@ -103,12 +98,10 @@ Scrivi solo la descrizione e gli hashtag. Nessun commento, nessun titolo, nessun
 Lingua: italiano.
 `;
 
-    `;
-
     const completion = await openai.createChatCompletion({
       model: 'gpt-3.5-turbo',
       messages: [{ role: 'user', content: prompt }],
-      max_tokens: 200,
+      max_tokens: 800,
     });
 
     const description = completion.data.choices[0].message.content.trim();
