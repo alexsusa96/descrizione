@@ -7,13 +7,13 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
 });
 
-// Configura OpenAI con API Key
+// Configura OpenAI
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
 const openai = new OpenAIApi(configuration);
 
-// Quando il bot riceve un messaggio
+// Quando riceve un messaggio
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
   if (!message.content.startsWith('!descrizione')) return;
@@ -24,9 +24,28 @@ client.on('messageCreate', async (message) => {
     return;
   }
 
-  await message.channel.send('🧠 Sto generando la descrizione...');
+  await message.channel.send('🧠 Sto studiando e generando la descrizione...');
 
   try {
+    // Step 1: L’AI riflette sull’articolo
+    const thinkingPrompt = `Analizza questo articolo per Vinted e pensa:
+- Che tipo è (categoria)?
+- Che stile ha?
+- Che tipo di cliente lo cercherebbe?
+- Che tipo di tag potresti considerare?
+
+Articolo: ${input}
+Rispondi con un ragionamento da venditore esperto, senza scrivere ancora la descrizione.`;
+
+    const thinking = await openai.createChatCompletion({
+      model: 'gpt-3.5-turbo-0125',
+      messages: [{ role: 'user', content: thinkingPrompt }],
+      max_tokens: 300,
+    });
+
+    const ragionamento = thinking.data.choices[0].message.content.trim();
+
+    // Step 2: Prompt originale, completo, come fornito
     const prompt = `
 Crea una descrizione per un articolo da vendere su Vinted.
 Informazioni: ${input}
@@ -70,8 +89,7 @@ Bene, il totale dei tags voglio che sia di almeno 40-50 tags.
 
 Mi raccomando: ricorda che il nostro scopo è fare più visualizzazioni possibile!
 
-
-ora ti faccio un esempio di descrizione dove spiego il perche dei tag che ho messo, questa descrizione che ti darò dovrai usarla per comprendere meglio il funzionamento di come vogliamo la descrizione prendila come spunto e dovrai riaddattarla alle altre richieste....
+ora ti faccio un esempio di descrizione dove spiego il perche dei tag che ho messo, questa descrizione che ti darò dovrai usarla per comprendere meglio il funzionamento di come vogliamo la descrizione prendila come spunto e dovrai riadattarla alle altre richieste....
 
 andiamo con l' esempio:
 
@@ -83,18 +101,20 @@ Articolo in ottime condizioni, per altre informazioni non esitate a contattarmi�
 
 Tags: #felpa #adidas #pull #sweat #felpa #con #cappuccio #crazy #jacket #maglione #trackjacket #pullover #zip (ho messo questi tag perche sono categorie simili in questo modo se qualcuno cercherà maglione adidas gli uscirà il mio articolo...) #sportiva #sportiva #ultra #baggy #vintage #retro #y2k #cropped #boxy #fit (ho messo questi tag cosi se qualcuno cerca felpa sportiva gli esce il mio articolo, se cerca pull vintage gli esce il mio articolo, se cerca maglione y2k gli esce il mio articolo, le descrizioni devi farle come se fossero un puzzle)  #equipment #juventus #real #madrid #bayern #munich #monaco (ho messo questi tag perche quipment e molto ricercato nel vintage adidas, poi le squadre da calcio perche se uno cerca felpa adidas juventus gli uscira il mio articolo e io in questo modo farò più visualizzazioni) #jorts #trackpants #ensemble #tracksuit #tuta #completo #pantaloni #tshirt #shirt #polo #flared #jeans (concludo con altre categorie in modo da avere più visualizzazini)
 
-
-ogni descrizione che farai dovra essere studiata in questo modo... 
+ogni descrizione che farai dovra essere studiata in questo modo...
 `;
 
     const completion = await openai.createChatCompletion({
       model: 'gpt-3.5-turbo-0125',
-      messages: [{ role: 'user', content: prompt }],
-      max_tokens: 900,
+      messages: [
+        { role: 'system', content: 'Sei un esperto di vendite su Vinted' },
+        { role: 'user', content: prompt }
+      ],
+      max_tokens: 1200,
     });
 
-    const description = completion.data.choices[0].message.content.trim();
-    message.reply(description);
+    const finalDescription = completion.data.choices[0].message.content.trim();
+    message.reply(finalDescription);
   } catch (err) {
     console.error('Errore OpenAI:', err);
     message.reply('Errore nella generazione della descrizione 😓');
