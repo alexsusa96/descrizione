@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, Events, REST, Routes, SlashCommandBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, Events } = require('discord.js');
 const { Configuration, OpenAIApi } = require('openai');
 require('dotenv').config();
 
@@ -11,36 +11,16 @@ const configuration = new Configuration({
 });
 const openai = new OpenAIApi(configuration);
 
-// Registrazione del comando slash /start
-client.once('ready', async () => {
+client.once('ready', () => {
   console.log(`✅ Bot online come ${client.user.tag}`);
-
-  const commands = [
-    new SlashCommandBuilder()
-      .setName('start')
-      .setDescription('Mostra il bottone per generare una descrizione')
-  ].map(command => command.toJSON());
-
-  const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN);
-
-  try {
-    await rest.put(
-      Routes.applicationGuildCommands(client.user.id, '1158774017839345704'),
-      { body: commands }
-    );
-    console.log('✅ Comando /start registrato');
-  } catch (error) {
-    console.error('Errore durante la registrazione del comando:', error);
-  }
 });
 
-// Gestione comando slash
-client.on(Events.InteractionCreate, async (interaction) => {
-  if (interaction.isChatInputCommand() && interaction.commandName === 'start') {
-    // Controllo ruolo amministratore
-    const isAdmin = interaction.member.roles.cache.has('1185323530175381706');
+// Comando !start con controllo ruolo e messaggio del bottone separato
+client.on('messageCreate', async (message) => {
+  if (message.content === '!start') {
+    const isAdmin = message.member.roles.cache.has('1185323530175381706');
     if (!isAdmin) {
-      return interaction.reply({ content: '❌ Solo chi ha il ruolo Amministratore può usare questo comando.', ephemeral: true });
+      return message.reply({ content: '❌ Solo chi ha il ruolo Amministratore può usare questo comando.', ephemeral: true });
     }
 
     const button = new ButtonBuilder()
@@ -50,14 +30,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     const row = new ActionRowBuilder().addComponents(button);
 
-    await interaction.reply({
+    await message.channel.send({
       content: 'Clicca il bottone per generare una descrizione con tag personalizzati:',
       components: [row],
-      ephemeral: true,
     });
   }
+});
 
-  // Quando cliccano il bottone → apri form
+client.on(Events.InteractionCreate, async (interaction) => {
   if (interaction.isButton() && interaction.customId === 'genera_descrizione') {
     const modal = new ModalBuilder()
       .setCustomId('modale_descrizione')
@@ -75,14 +55,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
     await interaction.showModal(modal);
   }
 
-  // Quando inviano il form
   if (interaction.isModalSubmit() && interaction.customId === 'modale_descrizione') {
     const input = interaction.fields.getTextInputValue('articolo_input');
 
     await interaction.reply({ content: '🧠 Sto ragionando sull'articolo...', ephemeral: true });
 
     try {
-      // STEP 1: Ragionamento
       const thinkingPrompt = `Analizza questo articolo per Vinted e pensa:
 - Che tipo è (categoria)?
 - Che stile ha?
@@ -103,7 +81,6 @@ Rispondi come un venditore esperto.`;
 
       await interaction.followUp({ content: `🧠 **Ragionamento AI**:\n${ragionamento}`, ephemeral: true });
 
-      // STEP 2: Descrizione completa con il tuo prompt
       const prompt = `
 Crea una descrizione per un articolo da vendere su Vinted.
 Informazioni: ${input}
@@ -160,7 +137,6 @@ Articolo in ottime condizioni, per altre informazioni non esitate a contattarmi�
 Tags: #felpa #adidas #pull #sweat #felpa #con #cappuccio #crazy #jacket #maglione #trackjacket #pullover #zip (ho messo questi tag perche sono categorie simili in questo modo se qualcuno cercherà maglione adidas gli uscirà il mio articolo...) #sportiva #sportiva #ultra #baggy #vintage #retro #y2k #cropped #boxy #fit (ho messo questi tag cosi se qualcuno cerca felpa sportiva gli esce il mio articolo, se cerca pull vintage gli esce il mio articolo, se cerca maglione y2k gli esce il mio articolo, le descrizioni devi farle come se fossero un puzzle)  #equipment #juventus #real #madrid #bayern #munich #monaco (ho messo questi tag perche quipment e molto ricercato nel vintage adidas, poi le squadre da calcio perche se uno cerca felpa adidas juventus gli uscira il mio articolo e io in questo modo farò più visualizzazioni) #jorts #trackpants #ensemble #tracksuit #tuta #completo #pantaloni #tshirt #shirt #polo #flared #jeans (concludo con altre categorie in modo da avere più visualizzazini)
 
 ogni descrizione che farai dovra essere studiata in questo modo...
-
 `;
 
       const finalResponse = await openai.createChatCompletion({
