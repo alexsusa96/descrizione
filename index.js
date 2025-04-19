@@ -46,7 +46,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     const input = new TextInputBuilder()
       .setCustomId('articolo_input')
-      .setLabel("Descrivi l'articolo (es: Felpa Nike vintage taglia M)")
+      .setLabel("Titolo articolo + scrivi meglio è")
       .setStyle(TextInputStyle.Paragraph)
       .setRequired(true);
 
