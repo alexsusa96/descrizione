@@ -120,7 +120,7 @@ Tags: #felpa #adidas #pull #sweat #felpa #con #cappuccio #crazy #jacket #maglion
 ogni descrizione che farai dovra essere studiata in questo modo...`;
 
       const thinkingPrompt = basePrompt;
-      const prompt = basePrompt;
+      // const prompt = basePrompt; (rimosso perché già definito)
 
       const thinking = await openai.createChatCompletion({
         model: 'gpt-3.5-turbo-0125',
