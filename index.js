@@ -3,15 +3,7 @@ const { Configuration, OpenAIApi } = require('openai');
 require('dotenv').config();
 
 const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
-  ],
-  presence: {
-    status: 'online',
-    activities: [{ name: 'genero descrizioni Vinted', type: 0 }]
-  }
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
 });
 
 const configuration = new Configuration({
@@ -23,7 +15,6 @@ client.once('ready', () => {
   console.log(`✅ Bot online come ${client.user.tag}`);
 });
 
-// Comando !start con controllo ruolo e messaggio del bottone separato
 client.on('messageCreate', async (message) => {
   if (message.content === '!start') {
     const isAdmin = message.member.roles.cache.has('1185323530175381706');
@@ -33,7 +24,7 @@ client.on('messageCreate', async (message) => {
 
     const button = new ButtonBuilder()
       .setCustomId('genera_descrizione')
-      .setLabel("Descrivi l'articolo (es: Felpa Nike vintage taglia M)")
+      .setLabel('📝 Genera Descrizione')
       .setStyle(ButtonStyle.Primary);
 
     const row = new ActionRowBuilder().addComponents(button);
@@ -164,4 +155,3 @@ ogni descrizione che farai dovra essere studiata in questo modo...
 });
 
 client.login(process.env.DISCORD_BOT_TOKEN);
-
