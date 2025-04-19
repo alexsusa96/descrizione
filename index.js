@@ -3,7 +3,8 @@ const { Configuration, OpenAIApi } = require('openai');
 require('dotenv').config();
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
+  presence: { status: 'online' },
 });
 
 const configuration = new Configuration({
@@ -15,6 +16,7 @@ client.once('ready', () => {
   console.log(`✅ Bot online come ${client.user.tag}`);
 });
 
+// Comando !start con controllo ruolo e messaggio del bottone separato
 client.on('messageCreate', async (message) => {
   if (message.content === '!start') {
     const isAdmin = message.member.roles.cache.has('1185323530175381706');
@@ -57,7 +59,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   if (interaction.isModalSubmit() && interaction.customId === 'modale_descrizione') {
     const input = interaction.fields.getTextInputValue('articolo_input');
 
-    await interaction.reply({ content: '🧠 Sto ragionando sull'articolo...', ephemeral: true });
+    await interaction.reply({ content: "🧠 Sto ragionando sull'articolo...", ephemeral: true });
 
     try {
       const thinkingPrompt = `Analizza questo articolo per Vinted e pensa:
