@@ -207,3 +207,4 @@ ogni descrizione che farai dovra essere studiata in questo modo...
 });
 
 client.login(process.env.DISCORD_BOT_TOKEN);
+
