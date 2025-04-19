@@ -1,52 +1,87 @@
-const { Client, GatewayIntentBits } = require('discord.js');
+const { Client, GatewayIntentBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, Events } = require('discord.js');
 const { Configuration, OpenAIApi } = require('openai');
 require('dotenv').config();
 
-// Configura il client Discord
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
 });
 
-// Configura OpenAI
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
 const openai = new OpenAIApi(configuration);
 
-// Quando riceve un messaggio
-client.on('messageCreate', async (message) => {
-  if (message.author.bot) return;
-  if (!message.content.startsWith('!descrizione')) return;
+// Quando il bot è pronto
+client.once('ready', () => {
+  console.log(`✅ Bot online come ${client.user.tag}`);
+});
 
-  const input = message.content.replace('!descrizione', '').trim();
-  if (!input) {
-    message.reply('Scrivimi cosa vuoi descrivere! Es: `!descrizione Giacca Zara nera taglia M`');
-    return;
+// Mostra il bottone quando qualcuno scrive "!start"
+client.on('messageCreate', async (message) => {
+  if (message.content === '!start') {
+    const button = new ButtonBuilder()
+      .setCustomId('genera_descrizione')
+      .setLabel('📝 Genera Descrizione')
+      .setStyle(ButtonStyle.Primary);
+
+    const row = new ActionRowBuilder().addComponents(button);
+
+    await message.reply({
+      content: 'Clicca il bottone per generare una descrizione con tag personalizzati:',
+      components: [row],
+    });
+  }
+});
+
+// Quando cliccano il bottone → apri form
+client.on(Events.InteractionCreate, async (interaction) => {
+  if (interaction.isButton() && interaction.customId === 'genera_descrizione') {
+    const modal = new ModalBuilder()
+      .setCustomId('modale_descrizione')
+      .setTitle('Genera Descrizione Vinted');
+
+    const input = new TextInputBuilder()
+      .setCustomId('articolo_input')
+      .setLabel('Descrivi l\'articolo (es: Felpa Nike vintage taglia M)')
+      .setStyle(TextInputStyle.Paragraph)
+      .setRequired(true);
+
+    const row = new ActionRowBuilder().addComponents(input);
+    modal.addComponents(row);
+
+    await interaction.showModal(modal);
   }
 
-  await message.channel.send('🧠 Sto studiando e generando la descrizione...');
+  // Quando inviano il form
+  if (interaction.isModalSubmit() && interaction.customId === 'modale_descrizione') {
+    const input = interaction.fields.getTextInputValue('articolo_input');
 
-  try {
-    // Step 1: L’AI riflette sull’articolo
-    const thinkingPrompt = `Analizza questo articolo per Vinted e pensa:
+    await interaction.reply({ content: '🧠 Sto ragionando sull\'articolo...', ephemeral: true });
+
+    try {
+      // STEP 1: Ragionamento
+      const thinkingPrompt = `Analizza questo articolo per Vinted e pensa:
 - Che tipo è (categoria)?
 - Che stile ha?
-- Che tipo di cliente lo cercherebbe?
-- Che tipo di tag potresti considerare?
+- Che vibe ha?
+- A chi potrebbe interessare?
+- Che tipo di tag correlati potresti usare?
 
 Articolo: ${input}
-Rispondi con un ragionamento da venditore esperto, senza scrivere ancora la descrizione.`;
+Rispondi come un venditore esperto.`;
 
-    const thinking = await openai.createChatCompletion({
-      model: 'gpt-3.5-turbo-0125',
-      messages: [{ role: 'user', content: thinkingPrompt }],
-      max_tokens: 300,
-    });
+      const thinking = await openai.createChatCompletion({
+        model: 'gpt-3.5-turbo-0125',
+        messages: [{ role: 'user', content: thinkingPrompt }],
+        max_tokens: 300,
+      });
 
-    const ragionamento = thinking.data.choices[0].message.content.trim();
+      const ragionamento = thinking.data.choices[0].message.content.trim();
 
-    // Step 2: Prompt originale, completo, come fornito
-    const prompt = `
+      await interaction.followUp({ content: `🧠 **Ragionamento AI**:\n${ragionamento}`, ephemeral: true });
+
+      // STEP 2: Descrizione completa con il tuo prompt
+      const prompt = `
 Crea una descrizione per un articolo da vendere su Vinted.
 Informazioni: ${input}
 devi fare una descrizione come partenza standard questa:
@@ -54,6 +89,7 @@ devi fare una descrizione come partenza standard questa:
 Articolo in ottime condizioni, per altre informazioni non esitate a contattarmi❤️❤️❤️❤️ la spedizione partirà in tempi molto brevi 24/48h 💪🏼💪🏼💜 
 
 Tags:
+
 
 qualsiasi sia l'articolo deve partire così la nostra descrizione. c'è solo un'eccezione nel caso ti venisse detto che l'articolo non è in ottime condizioni allora modifica la prima parte per esempio se ti viene detto che è in buone condizioni allora in quel caso dovrai scrivere al posto di "articolo in ottime condizioni": "articolo in buone condizioni".
 
@@ -102,24 +138,23 @@ Articolo in ottime condizioni, per altre informazioni non esitate a contattarmi�
 Tags: #felpa #adidas #pull #sweat #felpa #con #cappuccio #crazy #jacket #maglione #trackjacket #pullover #zip (ho messo questi tag perche sono categorie simili in questo modo se qualcuno cercherà maglione adidas gli uscirà il mio articolo...) #sportiva #sportiva #ultra #baggy #vintage #retro #y2k #cropped #boxy #fit (ho messo questi tag cosi se qualcuno cerca felpa sportiva gli esce il mio articolo, se cerca pull vintage gli esce il mio articolo, se cerca maglione y2k gli esce il mio articolo, le descrizioni devi farle come se fossero un puzzle)  #equipment #juventus #real #madrid #bayern #munich #monaco (ho messo questi tag perche quipment e molto ricercato nel vintage adidas, poi le squadre da calcio perche se uno cerca felpa adidas juventus gli uscira il mio articolo e io in questo modo farò più visualizzazioni) #jorts #trackpants #ensemble #tracksuit #tuta #completo #pantaloni #tshirt #shirt #polo #flared #jeans (concludo con altre categorie in modo da avere più visualizzazini)
 
 ogni descrizione che farai dovra essere studiata in questo modo...
+
 `;
 
-    const completion = await openai.createChatCompletion({
-      model: 'gpt-3.5-turbo-0125',
-      messages: [
-        { role: 'system', content: 'Sei un esperto di vendite su Vinted' },
-        { role: 'user', content: prompt }
-      ],
-      max_tokens: 1200,
-    });
+      const finalResponse = await openai.createChatCompletion({
+        model: 'gpt-3.5-turbo-0125',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 1200,
+      });
 
-    const finalDescription = completion.data.choices[0].message.content.trim();
-    message.reply(finalDescription);
-  } catch (err) {
-    console.error('Errore OpenAI:', err);
-    message.reply('Errore nella generazione della descrizione 😓');
+      const descrizione = finalResponse.data.choices[0].message.content.trim();
+
+      await interaction.followUp({ content: `📦 **Descrizione pronta**:\n${descrizione}`, ephemeral: true });
+    } catch (err) {
+      console.error('Errore:', err);
+      await interaction.followUp({ content: '❌ Errore nella generazione della descrizione.', ephemeral: true });
+    }
   }
 });
 
-// Avvia il bot
 client.login(process.env.DISCORD_BOT_TOKEN);
