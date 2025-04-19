@@ -130,7 +130,7 @@ ogni descrizione che farai dovra essere studiata in questo modo...`;
 
       const ragionamento = thinking.data.choices[0].message.content.trim();
 
-      await interaction.followUp({ content: `🧠 **Ragionamento AI**:\n${ragionamento}`, ephemeral: true });
+      // Ragionamento calcolato ma non mostrato pubblicamente
 
       const prompt = `
 Crea una descrizione per un articolo da vendere su Vinted.
