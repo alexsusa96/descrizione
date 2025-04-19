@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, Events } = require('discord.js');
+const { Client, GatewayIntentBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, Events, REST, Routes, SlashCommandBuilder } = require('discord.js');
 const { Configuration, OpenAIApi } = require('openai');
 require('dotenv').config();
 
@@ -11,14 +11,38 @@ const configuration = new Configuration({
 });
 const openai = new OpenAIApi(configuration);
 
-// Quando il bot è pronto
-client.once('ready', () => {
+// Registrazione del comando slash /start
+client.once('ready', async () => {
   console.log(`✅ Bot online come ${client.user.tag}`);
+
+  const commands = [
+    new SlashCommandBuilder()
+      .setName('start')
+      .setDescription('Mostra il bottone per generare una descrizione')
+  ].map(command => command.toJSON());
+
+  const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN);
+
+  try {
+    await rest.put(
+      Routes.applicationCommands(client.user.id),
+      { body: commands }
+    );
+    console.log('✅ Comando /start registrato');
+  } catch (error) {
+    console.error('Errore durante la registrazione del comando:', error);
+  }
 });
 
-// Mostra il bottone quando qualcuno scrive "!start"
-client.on('messageCreate', async (message) => {
-  if (message.content === '!start') {
+// Gestione comando slash
+client.on(Events.InteractionCreate, async (interaction) => {
+  if (interaction.isChatInputCommand() && interaction.commandName === 'start') {
+    // Controllo ruolo amministratore
+    const isAdmin = interaction.member.roles.cache.has('1185323530175381706');
+    if (!isAdmin) {
+      return interaction.reply({ content: '❌ Solo chi ha il ruolo Amministratore può usare questo comando.', ephemeral: true });
+    }
+
     const button = new ButtonBuilder()
       .setCustomId('genera_descrizione')
       .setLabel('📝 Genera Descrizione')
@@ -26,15 +50,14 @@ client.on('messageCreate', async (message) => {
 
     const row = new ActionRowBuilder().addComponents(button);
 
-    await message.reply({
+    await interaction.reply({
       content: 'Clicca il bottone per generare una descrizione con tag personalizzati:',
       components: [row],
+      ephemeral: true,
     });
   }
-});
 
-// Quando cliccano il bottone → apri form
-client.on(Events.InteractionCreate, async (interaction) => {
+  // Quando cliccano il bottone → apri form
   if (interaction.isButton() && interaction.customId === 'genera_descrizione') {
     const modal = new ModalBuilder()
       .setCustomId('modale_descrizione')
@@ -42,7 +65,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     const input = new TextInputBuilder()
       .setCustomId('articolo_input')
-      .setLabel('Descrivi l\'articolo (es: Felpa Nike vintage taglia M)')
+      .setLabel('Descrivi l'articolo (es: Felpa Nike vintage taglia M)')
       .setStyle(TextInputStyle.Paragraph)
       .setRequired(true);
 
@@ -56,7 +79,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   if (interaction.isModalSubmit() && interaction.customId === 'modale_descrizione') {
     const input = interaction.fields.getTextInputValue('articolo_input');
 
-    await interaction.reply({ content: '🧠 Sto ragionando sull\'articolo...', ephemeral: true });
+    await interaction.reply({ content: '🧠 Sto ragionando sull'articolo...', ephemeral: true });
 
     try {
       // STEP 1: Ragionamento
@@ -89,7 +112,6 @@ devi fare una descrizione come partenza standard questa:
 Articolo in ottime condizioni, per altre informazioni non esitate a contattarmi❤️❤️❤️❤️ la spedizione partirà in tempi molto brevi 24/48h 💪🏼💪🏼💜 
 
 Tags:
-
 
 qualsiasi sia l'articolo deve partire così la nostra descrizione. c'è solo un'eccezione nel caso ti venisse detto che l'articolo non è in ottime condizioni allora modifica la prima parte per esempio se ti viene detto che è in buone condizioni allora in quel caso dovrai scrivere al posto di "articolo in ottime condizioni": "articolo in buone condizioni".
 
