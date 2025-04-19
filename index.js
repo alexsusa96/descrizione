@@ -33,7 +33,7 @@ client.on('messageCreate', async (message) => {
 
     const button = new ButtonBuilder()
       .setCustomId('genera_descrizione')
-      .setLabel('📝 Genera Descrizione')
+      .setLabel("Descrivi l'articolo (es: Felpa Nike vintage taglia M)")
       .setStyle(ButtonStyle.Primary);
 
     const row = new ActionRowBuilder().addComponents(button);
@@ -53,7 +53,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     const input = new TextInputBuilder()
       .setCustomId('articolo_input')
-      .setLabel('Descrivi l'articolo (es: Felpa Nike vintage taglia M)')
+      .setLabel("Descrivi l'articolo (es: Felpa Nike vintage taglia M)")
       .setStyle(TextInputStyle.Paragraph)
       .setRequired(true);
 
@@ -164,3 +164,4 @@ ogni descrizione che farai dovra essere studiata in questo modo...
 });
 
 client.login(process.env.DISCORD_BOT_TOKEN);
+
