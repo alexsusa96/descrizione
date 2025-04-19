@@ -3,7 +3,15 @@ const { Configuration, OpenAIApi } = require('openai');
 require('dotenv').config();
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent
+  ],
+  presence: {
+    status: 'online',
+    activities: [{ name: 'genero descrizioni Vinted', type: 0 }]
+  }
 });
 
 const configuration = new Configuration({
