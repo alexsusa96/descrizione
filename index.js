@@ -3,38 +3,39 @@ const { Configuration, OpenAIApi } = require('openai');
 require('dotenv').config();
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+  ],
   presence: { status: 'online' },
 });
 
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const configuration = new Configuration({ apiKey: process.env.OPENAI_API_KEY });
 const openai = new OpenAIApi(configuration);
 
-client.once('ready', () => {
-  console.log(`✅ Bot online come ${client.user.tag}`);
-});
-
-// Mappa delle parole chiave e i tag associati
-const keywordMap = [
+const fixedTags = [
   {
-    keywords: ['felpa', 'pull', 'sweat', 'maglione', 'maglioncino', 'pullover', 'hoodie', 'trackjacket', 'pile'],
-    tags: ['#pull', '#sweat', '#shirt', '#sweatshirt', '#zip', '#capuche', '#sans', '#manches', '#trackjacket', '#felpa', '#cappuccio', '#con', '#avec', '#cropped', '#boxy', '#cropp', '#flared', '#baggy', '#fit', '#y2k', '#vintage', '#pullover', '#pile', '#hoodie', '#maglione', '#senza', '#maniche', '#jumper', '#golf', '#sweater', '#track', '#jacket', '#suit', '#tracksuit', '#vintage']
-  },
-  {
-    keywords: ['pantaloni', 'pants', 'trackpants', 'jeans', 'parachute', 'joggers', 'jorts'],
-    tags: ['#pantloni', '#pants', '#track', '#trackpants', '#baggy', '#flared', '#jeans', '#carpenter', '#work', '#worker', '#pant', '#ultra', '#della', '#tuta', '#bas', '#de', '#du', '#des', '#survetement', '#parachute', '#oversize', '#slim', '#skinny', '#cargo', '#joggers', '#tracksuit', '#tuta', '#vintage', '#y2k', '#jorts']
+    keywords: ['felpa', 'pullover', 'maglione', 'maglioncino', 'pull', 'sweat', 'hoodie', 'trackjacket', 'pile'],
+    tags: ['#felpa', '#hoodie', '#pullover', '#zip', '#sweatshirt', '#maglione', '#con', '#cappuccio', '#cropped', '#boxy', '#fit', '#vintage', '#y2k', '#jumper', '#sweater', '#tracksuit']
   },
   {
     keywords: ['tuta', 'ensemble', 'chandal', 'survetement', 'tracksuit', 'completo'],
     tags: ['#tute', '#ensemble', '#tuta', '#chandal', '#survetement', '#tracksuit', '#track', '#pants', '#pull', '#jacket', '#trackpants', '#vintage', '#y2k', '#streetwear', '#central', '#cee', '#london', '#drip', '#skinny', '#jeans', '#flared', '#baggy', '#completo', '#da', '#calcio', '#tech', '#running', '#raro', '#modello', '#psg', '#manchester', '#united', '#real', '#madrid']
   },
   {
-    keywords: ['tshirt', 't-shirt', 'longsleeve'],
-    tags: ['#tshirt', '#t', '#shirt', '#longsleeve', '#bintage', '#baggy', '#dubai', '#los', '#angeles', '#miami', '#tokyo', '#italy', '#chief', '#keef', '#new', '#york', '#polo', '#france', '#berlin', '#germany', '#city', '#citta', '#con']
+    keywords: ['pantaloni', 'pants', 'trackpants', 'jeans', 'parachute', 'joggers', 'jorts'],
+    tags: ['#pantloni', '#pants', '#track', '#trackpants', '#baggy', '#flared', '#jeans', '#carpenter', '#work', '#worker', '#pant', '#ultra', '#della', '#tuta', '#bas', '#de', '#du', '#des', '#survetement', '#parachute', '#oversize', '#slim', '#skinny', '#cargo', '#joggers', '#tracksuit', '#tuta', '#vintage', '#y2k', '#jorts']
   },
+  {
+    keywords: ['tshirt', 't-shirt', 'longsleeve', 'polo'],
+    tags: ['#tshirt', '#t', '#shirt', '#longsleeve', '#bintage', '#baggy', '#dubai', '#los', '#angeles', '#miami', '#tokyo', '#italy', '#chief', '#keef', '#new', '#york', '#polo', '#france', '#berlin', '#germany', '#city', '#citta', '#con']
+  }
 ];
+
+client.once('ready', () => {
+  console.log(`✅ Bot online come ${client.user.tag}`);
+});
 
 client.on('messageCreate', async (message) => {
   if (message.content === '!start') {
@@ -59,11 +60,13 @@ client.on('messageCreate', async (message) => {
 
 client.on(Events.InteractionCreate, async (interaction) => {
   if (interaction.isButton() && interaction.customId === 'genera_descrizione') {
-    const modal = new ModalBuilder().setCustomId('modale_descrizione').setTitle('Genera Descrizione Vinted');
+    const modal = new ModalBuilder()
+      .setCustomId('modale_descrizione')
+      .setTitle('Genera Descrizione Vinted');
 
     const input = new TextInputBuilder()
       .setCustomId('articolo_input')
-      .setLabel("Titolo articolo + scrivi meglio è")
+      .setLabel('Titolo articolo + scrivi meglio è')
       .setStyle(TextInputStyle.Paragraph)
       .setRequired(true);
 
@@ -75,19 +78,19 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
   if (interaction.isModalSubmit() && interaction.customId === 'modale_descrizione') {
     const input = interaction.fields.getTextInputValue('articolo_input');
+    await interaction.reply({ content: '🧠 Sto ragionando sull'articolo...', ephemeral: true });
 
-    await interaction.reply({ content: "🧠 Sto ragionando sull'articolo...", ephemeral: true });
+    // Estrai tags fissi dalla prima keyword trovata
+    const lowerInput = input.toLowerCase();
+    let extraTags = [];
+    for (const entry of fixedTags) {
+      if (entry.keywords.some(keyword => lowerInput.includes(keyword))) {
+        extraTags = entry.tags;
+        break;
+      }
+    }
 
     try {
-      // Cerca i tag fissi se ci sono parole chiave
-      let extraTags = [];
-      for (const group of keywordMap) {
-        if (group.keywords.some(keyword => input.toLowerCase().includes(keyword))) {
-          extraTags = group.tags;
-          break;
-        }
-      }
-
       const prompt = `
 Crea una descrizione per un articolo da vendere su Vinted.
 Informazioni: ${input}
@@ -131,7 +134,7 @@ Bene, il totale dei tags voglio che sia di almeno 40-50 tags.
 
 Mi raccomando: ricorda che il nostro scopo è fare più visualizzazioni possibile!
 
-ora ti faccio un esempio di descrizione dove spiego il perché dei tag che ho messo, questa descrizione che ti darò dovrai usarla per comprendere meglio il funzionamento di come vogliamo la descrizione prendila come spunto e dovrai riadattarla alle altre richieste....
+ora ti faccio un esempio di descrizione dove spiego il perche dei tag che ho messo, questa descrizione che ti darò dovrai usarla per comprendere meglio il funzionamento di come vogliamo la descrizione prendila come spunto e dovrai riadattarla alle altre richieste....
 
 andiamo con l' esempio:
 
@@ -143,17 +146,16 @@ Articolo in ottime condizioni, per altre informazioni non esitate a contattarmi�
 
 Tags: ${extraTags.join(' ')}
 
-ogni descrizione che farai dovrà essere studiata in questo modo...
+ogni descrizione che farai dovra essere studiata in questo modo...
 `;
 
-      const response = await openai.createChatCompletion({
+      const finalResponse = await openai.createChatCompletion({
         model: 'gpt-3.5-turbo-0125',
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 1200,
       });
 
-      const descrizione = response.data.choices[0].message.content.trim();
-
+      const descrizione = finalResponse.data.choices[0].message.content.trim();
       await interaction.followUp({ content: `📦 **Descrizione pronta**:
 ${descrizione}`, ephemeral: true });
     } catch (err) {
