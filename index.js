@@ -12,40 +12,30 @@ const configuration = new Configuration({
 });
 const openai = new OpenAIApi(configuration);
 
-const categoryTags = [
-  {
-    keywords: ['tute', 'ensemble', 'tuta', 'chandal', 'survetement', 'tracksuit', 'completo'],
-    tags: ['#tute', '#ensemble', '#tuta', '#chandal', '#survetement', '#tracksuit', '#track', '#pants', '#pull', '#jacket', '#trackpants', '#vintage', '#y2k', '#streetwear', '#central', '#cee', '#london', '#drip', '#skinny', '#jeans', '#flared', '#baggy', '#completo', '#da', '#calcio', '#tech', '#running', '#raro', '#modello', '#psg', '#manchester', '#united', '#real', '#madrid']
-  },
-  {
-    keywords: ['pantloni', 'pants', 'trackpants', 'jeans', 'parachute', 'joggers', 'jorts'],
-    tags: ['#pantloni', '#pants', '#track', '#trackpants', '#baggy', '#flared', '#jeans', '#carpenter', '#work', '#worker', '#pant', '#ultra', '#della', '#tuta', '#bas', '#de', '#du', '#des', '#survetement', '#parachute', '#oversize', '#slim', '#skinny', '#cargo', '#joggers', '#tracksuit', '#tuta', '#vintage', '#y2k', '#jorts']
-  },
-  {
-    keywords: ['pull', 'sweat', 'maglione', 'maglioncino', 'felpa', 'pullover', 'hoodie', 'trackjacket', 'pile'],
-    tags: ['#pull', '#sweat', '#shirt', '#sweatshirt', '#zip', '#capuche', '#sans', '#manches', '#trackjacket', '#felpa', '#cappuccio', '#con', '#avec', '#cropped', '#boxy', '#cropp', '#flared', '#baggy', '#fit', '#y2k', '#vintage', '#pullover', '#pile', '#hoodie', '#maglione', '#senza', '#maniche', '#jumper', '#golf', '#sweater', '#track', '#jacket', '#suit', '#tracksuit', '#vintage']
-  },
-  {
-    keywords: ['tshirt', 't-shirt', 'longsleeve'],
-    tags: ['#tshirt', '#t', '#shirt', '#longsleeve', '#bintage', '#baggy', '#dubai', '#los', '#angeles', '#miami', '#tokyo', '#italy', '#chief', '#keef', '#new', '#york', '#polo', '#france', '#berlin', '#germany', '#city', '#citta', '#con']
-  }
-];
-
-function getExtraTags(input) {
-  const lowered = input.toLowerCase();
-  for (const cat of categoryTags) {
-    if (cat.keywords.some(k => lowered.includes(k))) {
-      return cat.tags.join(' ');
-    }
-  }
-  return '';
-}
-
 client.once('ready', () => {
   console.log(`✅ Bot online come ${client.user.tag}`);
 });
 
-// Comando !start con controllo ruolo
+// Mappa delle parole chiave e i tag associati
+const keywordMap = [
+  {
+    keywords: ['felpa', 'pull', 'sweat', 'maglione', 'maglioncino', 'pullover', 'hoodie', 'trackjacket', 'pile'],
+    tags: ['#pull', '#sweat', '#shirt', '#sweatshirt', '#zip', '#capuche', '#sans', '#manches', '#trackjacket', '#felpa', '#cappuccio', '#con', '#avec', '#cropped', '#boxy', '#cropp', '#flared', '#baggy', '#fit', '#y2k', '#vintage', '#pullover', '#pile', '#hoodie', '#maglione', '#senza', '#maniche', '#jumper', '#golf', '#sweater', '#track', '#jacket', '#suit', '#tracksuit', '#vintage']
+  },
+  {
+    keywords: ['pantaloni', 'pants', 'trackpants', 'jeans', 'parachute', 'joggers', 'jorts'],
+    tags: ['#pantloni', '#pants', '#track', '#trackpants', '#baggy', '#flared', '#jeans', '#carpenter', '#work', '#worker', '#pant', '#ultra', '#della', '#tuta', '#bas', '#de', '#du', '#des', '#survetement', '#parachute', '#oversize', '#slim', '#skinny', '#cargo', '#joggers', '#tracksuit', '#tuta', '#vintage', '#y2k', '#jorts']
+  },
+  {
+    keywords: ['tuta', 'ensemble', 'chandal', 'survetement', 'tracksuit', 'completo'],
+    tags: ['#tute', '#ensemble', '#tuta', '#chandal', '#survetement', '#tracksuit', '#track', '#pants', '#pull', '#jacket', '#trackpants', '#vintage', '#y2k', '#streetwear', '#central', '#cee', '#london', '#drip', '#skinny', '#jeans', '#flared', '#baggy', '#completo', '#da', '#calcio', '#tech', '#running', '#raro', '#modello', '#psg', '#manchester', '#united', '#real', '#madrid']
+  },
+  {
+    keywords: ['tshirt', 't-shirt', 'longsleeve'],
+    tags: ['#tshirt', '#t', '#shirt', '#longsleeve', '#bintage', '#baggy', '#dubai', '#los', '#angeles', '#miami', '#tokyo', '#italy', '#chief', '#keef', '#new', '#york', '#polo', '#france', '#berlin', '#germany', '#city', '#citta', '#con']
+  },
+];
+
 client.on('messageCreate', async (message) => {
   if (message.content === '!start') {
     const isAdmin = message.member.roles.cache.has('1185323530175381706');
@@ -73,7 +63,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     const input = new TextInputBuilder()
       .setCustomId('articolo_input')
-      .setLabel('Titolo articolo + scrivi meglio è')
+      .setLabel("Titolo articolo + scrivi meglio è")
       .setStyle(TextInputStyle.Paragraph)
       .setRequired(true);
 
@@ -85,16 +75,22 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
   if (interaction.isModalSubmit() && interaction.customId === 'modale_descrizione') {
     const input = interaction.fields.getTextInputValue('articolo_input');
-    const extraTags = getExtraTags(input);
 
-    await interaction.reply({ content: '🧠 Sto ragionando sull'articolo...', ephemeral: true });
+    await interaction.reply({ content: "🧠 Sto ragionando sull'articolo...", ephemeral: true });
 
     try {
+      // Cerca i tag fissi se ci sono parole chiave
+      let extraTags = [];
+      for (const group of keywordMap) {
+        if (group.keywords.some(keyword => input.toLowerCase().includes(keyword))) {
+          extraTags = group.tags;
+          break;
+        }
+      }
+
       const prompt = `
 Crea una descrizione per un articolo da vendere su Vinted.
 Informazioni: ${input}
-Tags extra da includere sempre se rilevanti: ${extraTags}
-
 devi fare una descrizione come partenza standard questa:
 
 Articolo in ottime condizioni, per altre informazioni non esitate a contattarmi❤️❤️❤️❤️ la spedizione partirà in tempi molto brevi 24/48h 💪🏼💪🏼💜 
@@ -137,26 +133,27 @@ Mi raccomando: ricorda che il nostro scopo è fare più visualizzazioni possibil
 
 ora ti faccio un esempio di descrizione dove spiego il perché dei tag che ho messo, questa descrizione che ti darò dovrai usarla per comprendere meglio il funzionamento di come vogliamo la descrizione prendila come spunto e dovrai riadattarla alle altre richieste....
 
-andiamo con l'esempio:
+andiamo con l' esempio:
 
-voglio una descrizione per la mia felpa adidas
+voglio una descrizione per la mia felpa adidas 
 
 risultato:
 
 Articolo in ottime condizioni, per altre informazioni non esitate a contattarmi❤️❤️❤️❤️ la spedizione partirà in tempi molto brevi 24/48h 💪🏼💪🏼💜
 
-Tags: #felpa #adidas #pull #sweat #felpa #con #cappuccio #crazy #jacket #maglione #trackjacket #pullover #zip (ho messo questi tag perché sono categorie simili in questo modo se qualcuno cercherà maglione adidas gli uscirà il mio articolo...) #sportiva #ultra #baggy #vintage #retro #y2k #cropped #boxy #fit (ho messo questi tag così se qualcuno cerca felpa sportiva gli esce il mio articolo, se cerca pull vintage gli esce il mio articolo, se cerca maglione y2k gli esce il mio articolo, le descrizioni devi farle come se fossero un puzzle) #equipment #juventus #real #madrid #bayern #munich #monaco (ho messo questi tag perché equipment è molto ricercato nel vintage adidas, poi le squadre da calcio perché se uno cerca felpa adidas juventus gli uscirà il mio articolo e io in questo modo farò più visualizzazioni) #jorts #trackpants #ensemble #tracksuit #tuta #completo #pantaloni #tshirt #shirt #polo #flared #jeans (concludo con altre categorie in modo da avere più visualizzazioni)
+Tags: ${extraTags.join(' ')}
 
 ogni descrizione che farai dovrà essere studiata in questo modo...
 `;
 
-      const completion = await openai.createChatCompletion({
+      const response = await openai.createChatCompletion({
         model: 'gpt-3.5-turbo-0125',
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 1200,
       });
 
-      const descrizione = completion.data.choices[0].message.content.trim();
+      const descrizione = response.data.choices[0].message.content.trim();
+
       await interaction.followUp({ content: `📦 **Descrizione pronta**:
 ${descrizione}`, ephemeral: true });
     } catch (err) {
