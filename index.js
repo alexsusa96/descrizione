@@ -3,35 +3,31 @@ const { Configuration, OpenAIApi } = require('openai');
 require('dotenv').config();
 
 const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
-  ],
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
   presence: { status: 'online' },
 });
 
-const configuration = new Configuration({ apiKey: process.env.OPENAI_API_KEY });
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 const openai = new OpenAIApi(configuration);
 
-const fixedTags = [
-  {
-    keywords: ['felpa', 'pullover', 'maglione', 'maglioncino', 'pull', 'sweat', 'hoodie', 'trackjacket', 'pile'],
-    tags: ['#felpa', '#hoodie', '#pullover', '#zip', '#sweatshirt', '#maglione', '#con', '#cappuccio', '#cropped', '#boxy', '#fit', '#vintage', '#y2k', '#jumper', '#sweater', '#tracksuit']
-  },
-  {
-    keywords: ['tuta', 'ensemble', 'chandal', 'survetement', 'tracksuit', 'completo'],
-    tags: ['#tute', '#ensemble', '#tuta', '#chandal', '#survetement', '#tracksuit', '#track', '#pants', '#pull', '#jacket', '#trackpants', '#vintage', '#y2k', '#streetwear', '#central', '#cee', '#london', '#drip', '#skinny', '#jeans', '#flared', '#baggy', '#completo', '#da', '#calcio', '#tech', '#running', '#raro', '#modello', '#psg', '#manchester', '#united', '#real', '#madrid']
-  },
-  {
-    keywords: ['pantaloni', 'pants', 'trackpants', 'jeans', 'parachute', 'joggers', 'jorts'],
-    tags: ['#pantloni', '#pants', '#track', '#trackpants', '#baggy', '#flared', '#jeans', '#carpenter', '#work', '#worker', '#pant', '#ultra', '#della', '#tuta', '#bas', '#de', '#du', '#des', '#survetement', '#parachute', '#oversize', '#slim', '#skinny', '#cargo', '#joggers', '#tracksuit', '#tuta', '#vintage', '#y2k', '#jorts']
-  },
-  {
-    keywords: ['tshirt', 't-shirt', 'longsleeve', 'polo'],
-    tags: ['#tshirt', '#t', '#shirt', '#longsleeve', '#bintage', '#baggy', '#dubai', '#los', '#angeles', '#miami', '#tokyo', '#italy', '#chief', '#keef', '#new', '#york', '#polo', '#france', '#berlin', '#germany', '#city', '#citta', '#con']
+const tagPresets = {
+  felpa: ['#felpa', '#hoodie', '#pullover', '#zip', '#sweatshirt', '#maglione'],
+  tuta: ['#tute', '#ensemble', '#tuta', '#chandal', '#survetement', '#tracksuit', '#track', '#pants', '#pull', '#jacket', '#trackpants', '#vintage', '#y2k', '#streetwear', '#central', '#cee', '#london', '#drip', '#skinny', '#jeans', '#flared', '#baggy', '#completo', '#da', '#calcio', '#tech', '#running', '#raro', '#modello', '#psg', '#manchester', '#united', '#real', '#madrid'],
+  pantaloni: ['#pantloni', '#pants', '#track', '#trackpants', '#baggy', '#flared', '#jeans', '#carpenter', '#work', '#worker', '#pant', '#ultra', '#della', '#tuta', '#bas', '#de', '#du', '#des', '#survetement', '#parachute', '#oversize', '#slim', '#skinny', '#cargo', '#joggers', '#tracksuit', '#tuta', '#vintage', '#y2k', '#jorts'],
+  polo: ['#tshirt', '#t', '#shirt', '#longsleeve', '#bintage', '#baggy', '#dubai', '#los', '#angeles', '#miami', '#tokyo', '#italy', '#chief', '#keef', '#new', '#york', '#polo', '#france', '#berlin', '#germany', '#city', '#citta', '#con']
+};
+
+const findTagsFromKeywords = (text) => {
+  const lowered = text.toLowerCase();
+  for (const [key, tags] of Object.entries(tagPresets)) {
+    if (tagPresets[key].some(tag => lowered.includes(tag.replace('#', '')))) {
+      return tags;
+    }
   }
-];
+  return [];
+};
 
 client.once('ready', () => {
   console.log(`✅ Bot online come ${client.user.tag}`);
@@ -41,7 +37,7 @@ client.on('messageCreate', async (message) => {
   if (message.content === '!start') {
     const isAdmin = message.member.roles.cache.has('1185323530175381706');
     if (!isAdmin) {
-      return message.reply({ content: '❌ Solo chi ha il ruolo Amministratore può usare questo comando.' });
+      return message.reply({ content: '❌ Solo chi ha il ruolo Amministratore può usare questo comando.', ephemeral: true });
     }
 
     const button = new ButtonBuilder()
@@ -66,7 +62,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     const input = new TextInputBuilder()
       .setCustomId('articolo_input')
-      .setLabel('Titolo articolo + scrivi meglio è')
+      .setLabel("Titolo articolo + scrivi meglio è")
       .setStyle(TextInputStyle.Paragraph)
       .setRequired(true);
 
@@ -78,25 +74,17 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
   if (interaction.isModalSubmit() && interaction.customId === 'modale_descrizione') {
     const input = interaction.fields.getTextInputValue('articolo_input');
-    await interaction.reply({ content: '🧠 Sto ragionando sull'articolo...', ephemeral: true });
-
-    // Estrai tags fissi dalla prima keyword trovata
-    const lowerInput = input.toLowerCase();
-    let extraTags = [];
-    for (const entry of fixedTags) {
-      if (entry.keywords.some(keyword => lowerInput.includes(keyword))) {
-        extraTags = entry.tags;
-        break;
-      }
-    }
+    await interaction.reply({ content: "🧠 Sto ragionando sull'articolo...", ephemeral: true });
 
     try {
+      const extraTags = findTagsFromKeywords(input);
+
       const prompt = `
 Crea una descrizione per un articolo da vendere su Vinted.
 Informazioni: ${input}
 devi fare una descrizione come partenza standard questa:
 
-Articolo in ottime condizioni, per altre informazioni non esitate a contattarmi❤️❤️❤️❤️ la spedizione partirà in tempi molto brevi 24/48h 💪🏼💪🏼💜 
+Articolo in ottime condizioni, per altre informazioni non esitate a contattarmi❤️❤️❤️❤️ la spedizione partirà in tempi molto brevi 24/48h 💪🏼💪🏼💜
 
 Tags:
 
@@ -144,18 +132,29 @@ risultato:
 
 Articolo in ottime condizioni, per altre informazioni non esitate a contattarmi❤️❤️❤️❤️ la spedizione partirà in tempi molto brevi 24/48h 💪🏼💪🏼💜
 
-Tags: ${extraTags.join(' ')}
+Tags: #felpa #adidas #pull #sweat #felpa #con #cappuccio #crazy #jacket #maglione #trackjacket #pullover #zip (ho messo questi tag perche sono categorie simili in questo modo se qualcuno cercherà maglione adidas gli uscirà il mio articolo...) #sportiva #sportiva #ultra #baggy #vintage #retro #y2k #cropped #boxy #fit (ho messo questi tag cosi se qualcuno cerca felpa sportiva gli esce il mio articolo, se cerca pull vintage gli esce il mio articolo, se cerca maglione y2k gli esce il mio articolo, le descrizioni devi farle come se fossero un puzzle)  #equipment #juventus #real #madrid #bayern #munich #monaco (ho messo questi tag perche quipment e molto ricercato nel vintage adidas, poi le squadre da calcio perche se uno cerca felpa adidas juventus gli uscira il mio articolo e io in questo modo farò più visualizzazioni) #jorts #trackpants #ensemble #tracksuit #tuta #completo #pantaloni #tshirt #shirt #polo #flared #jeans (concludo con altre categorie in modo da avere più visualizzazini)
 
 ogni descrizione che farai dovra essere studiata in questo modo...
 `;
 
-      const finalResponse = await openai.createChatCompletion({
+      const completion = await openai.createChatCompletion({
         model: 'gpt-3.5-turbo-0125',
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 1200,
       });
 
-      const descrizione = finalResponse.data.choices[0].message.content.trim();
+      let descrizione = completion.data.choices[0].message.content.trim();
+
+      // Inserisci i tag extra trovati all'inizio dei tag
+      if (extraTags.length > 0) {
+        const tagSectionIndex = descrizione.indexOf('Tags:');
+        if (tagSectionIndex !== -1) {
+          const before = descrizione.substring(0, tagSectionIndex + 6);
+          const after = descrizione.substring(tagSectionIndex + 6);
+          descrizione = `${before} ${extraTags.join(' ')} ${after}`;
+        }
+      }
+
       await interaction.followUp({ content: `📦 **Descrizione pronta**:
 ${descrizione}`, ephemeral: true });
     } catch (err) {
